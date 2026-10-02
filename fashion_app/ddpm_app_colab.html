@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fashion Magazine Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:    #FDFAF5;
+    --white:    #FFFFFF;
+    --ink:      #1C1C1C;
+    --ink-soft: #4A4A4A;
+    --ink-mute: #8A8A8A;
+    --gold:     #B8960C;
+    --gold-lt:  #E8D88A;
+    --blush:    #E8D5C4;
+    --sage:     #5C7A5E;
+    --rust:     #B85C38;
+    --border:   rgba(28,28,28,0.12);
+    --shadow:   0 2px 16px rgba(28,28,28,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  #sidebar {
+    width: 360px; min-width: 360px;
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+    box-shadow: var(--shadow);
+  }
+
+  #sidebar-header {
+    padding: 1.8rem 1.8rem 1.4rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--cream);
+    position: sticky; top: 0; z-index: 5;
+  }
+
+  #sidebar h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.4rem; font-weight: 600;
+    color: var(--ink); letter-spacing: 0.02em;
+  }
+  #sidebar h1 span { color: var(--gold); font-style: italic; }
+
+  #sidebar-tagline {
+    font-size: 0.68rem; color: var(--ink-mute);
+    letter-spacing: 0.14em; text-transform: uppercase; margin-top: 0.25rem;
+  }
+
+  #sidebar-body {
+    padding: 1.4rem 1.8rem;
+    display: flex; flex-direction: column; gap: 1.2rem;
+    flex: 1;
+  }
+
+  label {
+    font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-mute); display: block; margin-bottom: 0.35rem; font-weight: 500;
+  }
+
+  input[type=text], input[type=password], textarea {
+    width: 100%; background: var(--cream); border: 1px solid var(--border);
+    color: var(--ink); padding: 0.6rem 0.8rem; border-radius: 4px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; resize: vertical;
+    transition: border-color 0.2s;
+  }
+  input[type=text]:focus, input[type=password]:focus, textarea:focus {
+    outline: none; border-color: var(--gold); background: var(--white);
+  }
+  input::placeholder, textarea::placeholder { color: var(--ink-mute); }
+
+  /* Style rows */
+  #styles-list { display: flex; flex-direction: column; gap: 0.4rem; }
+  .style-row { display: flex; gap: 0.4rem; }
+  .style-row input { flex: 1; }
+  .btn-remove {
+    background: #FFF0EC; border: 1px solid rgba(184,92,56,0.25);
+    color: var(--rust); cursor: pointer; border-radius: 4px;
+    padding: 0 0.65rem; font-size: 1rem; transition: background 0.15s;
+  }
+  .btn-remove:hover { background: #FFE0D6; }
+
+  #btn-add-style {
+    background: none; border: 1px dashed var(--border); color: var(--ink-mute);
+    padding: 0.45rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;
+    width: 100%; letter-spacing: 0.08em; font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  #btn-add-style:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Buttons */
+  .action-btn {
+    padding: 0.75rem 1rem; border: none; border-radius: 4px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; cursor: pointer;
+    width: 100%; font-weight: 500; letter-spacing: 0.06em;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .action-btn:hover { opacity: 0.88; }
+  .action-btn:active { transform: scale(0.99); }
+  .action-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  #btn-generate { background: var(--ink); color: var(--white); }
+  #btn-delete   { background: #FFF0EC; color: var(--rust); border: 1px solid rgba(184,92,56,0.2); }
+  #btn-feedback { background: #EEF3EE; color: var(--sage); border: 1px solid rgba(92,122,94,0.25); }
+
+  /* ── Feedback section ── */
+  #feedback-section {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding-top: 1.2rem;
+  }
+  #feedback-section.visible { display: flex; flex-direction: column; gap: 1rem; }
+
+  .feedback-block { display: flex; flex-direction: column; gap: 0.35rem; }
+
+  .feedback-label {
+    font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-mute); font-weight: 500;
+  }
+
+  .image-feedback-row {
+    background: #F9F6F1;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem;
+    display: flex; flex-direction: column; gap: 0.4rem;
+  }
+
+  .image-feedback-row .img-label {
+    font-size: 0.7rem; color: var(--gold);
+    letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;
+  }
+
+  /* Progress bar */
+  #progress-bar-wrap {
+    width: 100%; height: 3px; background: var(--blush);
+    border-radius: 2px; overflow: hidden; display: none;
+  }
+  #progress-bar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-lt));
+    border-radius: 2px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* Progress log */
+  #progress-area {
+    font-size: 0.73rem; color: var(--ink-mute);
+    line-height: 1.9; max-height: 180px; overflow-y: auto;
+  }
+  #progress-area .step { padding: 0.05rem 0; display: flex; align-items: flex-start; gap: 0.4rem; }
+  #progress-area .step::before { content: '·'; color: var(--border); flex-shrink: 0; }
+  #progress-area .step.active { color: var(--gold); }
+  #progress-area .step.active::before { content: '▸'; color: var(--gold); animation: pulse 1s infinite; }
+  #progress-area .step.done { color: var(--sage); }
+  #progress-area .step.done::before { content: '✓'; color: var(--sage); }
+  #progress-area .step.error { color: var(--rust); }
+  #progress-area .step.error::before { content: '✕'; color: var(--rust); }
+  @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
+
+  /* History */
+  #history-toggle {
+    background: none; border: 1px solid var(--border); color: var(--ink-mute);
+    padding: 0.4rem 0.7rem; border-radius: 4px; cursor: pointer;
+    font-size: 0.7rem; letter-spacing: 0.1em; width: 100%; text-align: left;
+    font-family: 'DM Sans', sans-serif; text-transform: uppercase;
+    transition: border-color 0.2s;
+  }
+  #history-toggle:hover { border-color: var(--gold); color: var(--ink); }
+  #history-panel {
+    font-size: 0.74rem; color: var(--ink-soft);
+    max-height: 140px; overflow-y: auto; display: none; margin-top: 0.5rem;
+  }
+  #history-panel.open { display: block; }
+  .history-entry { padding: 0.4rem 0; border-bottom: 1px solid var(--border); }
+  .history-entry strong { color: var(--ink); display: block; font-weight: 500; }
+  .history-entry span { color: var(--ink-mute); font-size: 0.68rem; }
+
+  /* ── Main panel ── */
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #preview-area {
+    flex: 1; overflow: hidden; background: var(--cream);
+    display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  #preview-iframe { width: 100%; height: 100%; border: none; display: none; }
+
+  #empty-state { text-align: center; color: var(--ink-mute); }
+  #empty-state .symbol {
+    font-family: 'Playfair Display', serif; font-size: 3rem;
+    color: var(--blush); display: block; margin-bottom: 1rem; font-style: italic;
+  }
+  #empty-state h2 {
+    font-family: 'Playfair Display', serif; font-size: 1.2rem;
+    color: var(--ink-soft); font-weight: 400; margin-bottom: 0.4rem;
+  }
+  #empty-state p { font-size: 0.82rem; color: var(--ink-mute); line-height: 1.6; }
+
+  /* Loading overlay */
+  #loading-overlay {
+    display: none; position: absolute; inset: 0;
+    background: rgba(253,250,245,0.92);
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 1.2rem; z-index: 10;
+    backdrop-filter: blur(4px);
+  }
+  #loading-overlay.visible { display: flex; }
+  .spinner {
+    width: 36px; height: 36px; border: 2px solid var(--blush);
+    border-top-color: var(--gold); border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading-label {
+    font-size: 0.82rem; color: var(--ink-soft); font-family: 'DM Sans', sans-serif;
+    max-width: 260px; text-align: center; line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h1>✦ Fashion <span>Generator</span></h1>
+    <div id="sidebar-tagline">AI-Powered Magazine Creator</div>
+  </div>
+
+  <div id="sidebar-body">
+
+    <!-- API Key — asked once, used for all LLM calls -->
+    <div>
+      <label>API Key</label>
+      <input type="password" id="inp-apikey" placeholder="Paste your LiteLLM / OpenAI key…">
+    </div>
+
+    <div>
+      <label>Article Title</label>
+      <input type="text" id="inp-title" placeholder="e.g. Spring Trends 2025">
+    </div>
+
+    <div>
+      <label>Image Styles</label>
+      <div id="styles-list">
+        <div class="style-row">
+          <input type="text" placeholder="e.g. editorial high fashion, studio lighting">
+          <button class="btn-remove" onclick="removeStyle(this)">×</button>
+        </div>
+      </div>
+      <button id="btn-add-style" onclick="addStyle()">+ Add image style</button>
+    </div>
+
+    <div>
+      <label>Article Description</label>
+      <textarea id="inp-query" rows="4" placeholder="Describe in detail what the article should cover…"></textarea>
+    </div>
+
+    <button class="action-btn" id="btn-generate" onclick="generate()">▶ Generate</button>
+    <button class="action-btn" id="btn-delete" onclick="deleteHistory()">🗑 Delete History</button>
+
+    <!-- Feedback section — appears after first generation -->
+    <div id="feedback-section">
+
+      <div id="image-feedbacks-container"></div>
+
+      <div class="feedback-block">
+        <div class="feedback-label">Article Text Changes</div>
+        <textarea id="inp-text-feedback" rows="3"
+          placeholder="What would you like to change in the text? e.g. 'Change the second paragraph to focus on sustainability'"></textarea>
+      </div>
+
+      <button class="action-btn" id="btn-feedback" onclick="applyFeedback()">✏️ Apply Feedback</button>
+    </div>
+
+    <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div id="progress-area"></div>
+
+    <div>
+      <button id="history-toggle" onclick="toggleHistory()">▸ Session History</button>
+      <div id="history-panel"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="main">
+  <div id="preview-area">
+    <div id="empty-state">
+      <span class="symbol">✦</span>
+      <h2>Your article will appear here</h2>
+      <p>Fill in the form and press Generate<br>to create your fashion article.</p>
+    </div>
+    <iframe id="preview-iframe"></iframe>
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+      <div id="loading-label">Starting…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  var currentNumImages  = 0;
+  var currentImageStyles = [];
+
+  // ── Style rows ─────────────────────────────────────────────────────────────
+  function addStyle() {
+    var list = document.getElementById('styles-list');
+    var row  = document.createElement('div');
+    row.className = 'style-row';
+    row.innerHTML = '<input type="text" placeholder="Describe image style…"><button class="btn-remove" onclick="removeStyle(this)">×</button>';
+    list.appendChild(row);
+  }
+
+  function removeStyle(btn) {
+    var list = document.getElementById('styles-list');
+    if (list.children.length > 1) btn.parentElement.remove();
+  }
+
+  function getStyles() {
+    return Array.from(document.querySelectorAll('.style-row input'))
+      .map(function(i) { return i.value.trim(); }).filter(Boolean);
+  }
+
+  // ── Per-image feedback inputs ───────────────────────────────────────────────
+  function buildImageFeedbackInputs(numImages) {
+    var container = document.getElementById('image-feedbacks-container');
+    container.innerHTML = '';
+    for (var i = 1; i <= numImages; i++) {
+      var row = document.createElement('div');
+      row.className = 'image-feedback-row';
+      row.innerHTML =
+        '<div class="img-label">Image ' + i + ' Feedback</div>' +
+        '<textarea id="img-feedback-' + i + '" rows="2" ' +
+        'placeholder="Leave empty to keep, or describe what to change…"></textarea>';
+      container.appendChild(row);
+    }
+  }
+
+  function getImageFeedbacks() {
+    var result = {};
+    document.querySelectorAll('[id^="img-feedback-"]').forEach(function(el) {
+      var idx = el.id.replace('img-feedback-', '');
+      result[idx] = el.value.trim();
+    });
+    return result;
+  }
+
+  // ── Progress ────────────────────────────────────────────────────────────────
+  function clearProgress() {
+    document.getElementById('progress-area').innerHTML = '';
+    setBar(0);
+    document.getElementById('progress-bar-wrap').style.display = 'none';
+  }
+
+  function addStep(msg, state) {
+    state = state || 'active';
+    var area = document.getElementById('progress-area');
+    area.querySelectorAll('.step.active').forEach(function(s) {
+      s.classList.remove('active'); s.classList.add('done');
+    });
+    var div = document.createElement('div');
+    div.className = 'step ' + state;
+    div.textContent = msg;
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+    document.getElementById('loading-label').textContent = msg;
+  }
+
+  function setBar(pct) {
+    document.getElementById('progress-bar-wrap').style.display = pct > 0 ? 'block' : 'none';
+    document.getElementById('progress-bar').style.width = pct + '%';
+  }
+
+  function lockUI(mode) {
+    document.getElementById('btn-generate').disabled = true;
+    var fb = document.getElementById('btn-feedback');
+    if (fb) fb.disabled = true;
+    document.getElementById('loading-overlay').classList.add('visible');
+    document.getElementById('progress-bar-wrap').style.display = 'block';
+    if (mode === 'feedback') {
+      if (fb) fb.textContent = '⏳ Processing…';
+    } else {
+      document.getElementById('btn-generate').textContent = '⏳ Generating…';
+    }
+  }
+
+  function unlockUI() {
+    document.getElementById('btn-generate').disabled = false;
+    document.getElementById('btn-generate').textContent = '▶ Generate';
+    var fb = document.getElementById('btn-feedback');
+    if (fb) { fb.disabled = false; fb.textContent = '✏️ Apply Feedback'; }
+    document.getElementById('loading-overlay').classList.remove('visible');
+  }
+
+  // ── Colab bridge helper ─────────────────────────────────────────────────────
+  function sleep(ms) {
+    return new Promise(function(resolve) { setTimeout(resolve, ms); });
+  }
+
+  async function callPython(promise) {
+    var result = await promise;
+    var raw = result.data['text/plain'];
+    // Strip surrounding Python repr quotes
+    if (raw && raw.length >= 2) {
+      var f = raw[0], l = raw[raw.length - 1];
+      if ((f === "'" && l === "'") || (f === '"' && l === '"')) {
+        raw = raw.slice(1, -1);
+      }
+    }
+    return JSON.parse(raw);
+  }
+
+  // Decode base64-encoded HTML returned by Python
+  function decodeHtml(b64) {
+    var bytes = atob(b64);
+    var arr = new Uint8Array(bytes.length);
+    for (var i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+    return new TextDecoder('utf-8').decode(arr);
+  }
+
+  // Show HTML in iframe via data URI — more reliable than doc.write() in Colab's sandbox
+  function showPreviewFromB64(htmlB64) {
+    document.getElementById('empty-state').style.display = 'none';
+    var iframe = document.getElementById('preview-iframe');
+    iframe.style.display = 'block';
+    iframe.src = 'data:text/html;base64,' + htmlB64;
+  }
+
+  // ── Generate ────────────────────────────────────────────────────────────────
+  async function generate() {
+    var title  = document.getElementById('inp-title').value.trim();
+    var query  = document.getElementById('inp-query').value.trim();
+    var apiKey = document.getElementById('inp-apikey').value.trim();
+    var styles = getStyles();
+
+    if (!title || !query) { alert('Please fill in title and article description.'); return; }
+    if (!apiKey) { alert('Please enter your API key.'); return; }
+
+    currentImageStyles = styles;
+    clearProgress();
+    lockUI('generate');
+
+    addStep('Fetching fashion trend data…', 'active'); setBar(10);
+
+    try {
+      // Fire the Python callback (non-blocking Promise)
+      var promise = google.colab.kernel.invokeFunction(
+        'colabGenerate',
+        [title, JSON.stringify(styles), query, apiKey],
+        {}
+      );
+
+      // Show simulated progress while Python runs
+      await sleep(600);  addStep('Generating DDPM fashion images…', 'active'); setBar(35);
+      await sleep(1500); addStep('Writing article with Claude…',    'active'); setBar(60);
+      await sleep(800);  addStep('Assembling final HTML page…',     'active'); setBar(80);
+
+      // Wait for actual result
+      var data = await callPython(promise);
+
+      setBar(100);
+      addStep('✅ Done!', 'done');
+
+      currentNumImages   = data.num_images;
+      currentImageStyles = styles;
+
+      showPreviewFromB64(data.html_b64);
+      showFeedbackSection(data.num_images);
+      loadHistory();
+
+    } catch(err) {
+      addStep('❌ ' + (err.message || String(err)), 'error');
+    } finally {
+      unlockUI();
+    }
+  }
+
+  // ── Apply Feedback ──────────────────────────────────────────────────────────
+  async function applyFeedback() {
+    var textFeedback   = document.getElementById('inp-text-feedback').value.trim();
+    var imageFeedbacks = getImageFeedbacks();
+    var title          = document.getElementById('inp-title').value.trim();
+    var apiKey         = document.getElementById('inp-apikey').value.trim();
+
+    if (!apiKey) { alert('Please enter your API key.'); return; }
+
+    clearProgress();
+    lockUI('feedback');
+
+    addStep('Checking feedback…', 'active'); setBar(10);
+
+    try {
+      var promise = google.colab.kernel.invokeFunction(
+        'colabFeedback',
+        [textFeedback, JSON.stringify(imageFeedbacks), title, apiKey],
+        {}
+      );
+
+      await sleep(600);  addStep('Regenerating DDPM images…',   'active'); setBar(40);
+      await sleep(1200); addStep('Applying text changes…',       'active'); setBar(70);
+      await sleep(600);  addStep('Rebuilding HTML page…',        'active'); setBar(85);
+
+      var data = await callPython(promise);
+
+      setBar(100);
+      addStep('✅ Done!', 'done');
+
+      showPreviewFromB64(data.html_b64);
+      loadHistory();
+
+      // Clear feedback inputs
+      document.getElementById('inp-text-feedback').value = '';
+      document.querySelectorAll('[id^="img-feedback-"]').forEach(function(el) { el.value = ''; });
+
+    } catch(err) {
+      addStep('❌ ' + (err.message || String(err)), 'error');
+    } finally {
+      unlockUI();
+    }
+  }
+
+  // ── Preview ─────────────────────────────────────────────────────────────────
+
+  function showFeedbackSection(numImages) {
+    buildImageFeedbackInputs(numImages);
+    document.getElementById('feedback-section').classList.add('visible');
+  }
+
+  // ── Delete ──────────────────────────────────────────────────────────────────
+  async function deleteHistory() {
+    if (!confirm('Delete all session history? This cannot be undone.')) return;
+    try {
+      var data = await callPython(
+        google.colab.kernel.invokeFunction('colabDeleteHistory', [], {})
+      );
+      alert('Deleted: ' + (data.deleted ? data.deleted.join(', ') : 'history'));
+      document.getElementById('history-panel').innerHTML = '';
+      document.getElementById('feedback-section').classList.remove('visible');
+      currentNumImages   = 0;
+      currentImageStyles = [];
+      clearProgress();
+    } catch(err) {
+      alert('Error: ' + err.message);
+    }
+  }
+
+  // ── History ─────────────────────────────────────────────────────────────────
+  function toggleHistory() {
+    var panel = document.getElementById('history-panel');
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) loadHistory();
+  }
+
+  async function loadHistory() {
+    var panel = document.getElementById('history-panel');
+    try {
+      var data = await callPython(
+        google.colab.kernel.invokeFunction('colabGetHistory', [], {})
+      );
+      if (!data || !data.length) {
+        panel.innerHTML = '<div class="history-entry">No history yet.</div>';
+        return;
+      }
+      panel.innerHTML = data.slice().reverse().map(function(e) {
+        var label = e.article_query && e.article_query.startsWith('[FEEDBACK]') ? '✏️ ' : '✦ ';
+        return '<div class="history-entry"><strong>' + label + e.title + '</strong>' +
+               '<span>' + (e.timestamp || '').slice(0, 16).replace('T', ' ') + '</span></div>';
+      }).join('');
+    } catch(err) {
+      panel.innerHTML = '<div class="history-entry">Could not load history.</div>';
+    }
+  }
+</script>
+</body>
+</html>

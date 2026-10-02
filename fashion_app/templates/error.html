@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Generation Error</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Georgia, serif;
+      background: #F5F0E8;
+      color: #1A1208;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .error-box {
+      max-width: 540px;
+      width: 100%;
+      background: white;
+      border: 1px solid rgba(184,92,56,0.3);
+      border-top: 4px solid #B85C38;
+      border-radius: 4px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 24px rgba(26,18,8,0.08);
+    }
+    .icon { font-size: 2rem; margin-bottom: 1rem; }
+    h1 { font-size: 1.3rem; color: #B85C38; margin-bottom: 0.8rem; }
+    .error-message {
+      font-size: 0.85rem; color: #666; background: #FFF5F0;
+      border: 1px solid rgba(184,92,56,0.2); border-radius: 3px;
+      padding: 0.8rem 1rem; margin: 1rem 0; line-height: 1.6;
+      font-family: monospace;
+    }
+    p { font-size: 0.88rem; color: #555; line-height: 1.6; margin-bottom: 1rem; }
+    .back-btn {
+      display: inline-block; margin-top: 0.5rem;
+      background: #C9A84C; color: #1A1208; border: none;
+      padding: 0.7rem 1.4rem; border-radius: 3px;
+      font-family: Georgia, serif; font-size: 0.88rem;
+      font-weight: bold; cursor: pointer; text-decoration: none;
+    }
+    .back-btn:hover { opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <div class="error-box">
+    <div class="icon">⚠️</div>
+    <h1>Generation Failed</h1>
+    <p>Something went wrong while generating your article. The details are below.</p>
+    <div class="error-message">{{ error_message }}</div>
+    <p>You can go back, adjust your inputs, and try again. If the problem persists, check that your API key is valid and the server is running.</p>
+    <a class="back-btn" href="/">← Go Back</a>
+  </div>
+</body>
+</html>
